@@ -6,6 +6,7 @@ import Combine
 class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var currentHike: Hike = Hike()
     @Published var allHikes: [Hike] = []
+    @Published var isRecording: Bool = false
     
     private var locationManager = CLLocationManager()
     
@@ -20,19 +21,22 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     func startRecording() {
         currentHike = Hike()
+        isRecording = true
         locationManager.startUpdatingLocation()
     }
     
     func stopRecording() {
         locationManager.stopUpdatingLocation()
+        isRecording = false
         saveHike(currentHike)
+        // Clear currentHike after saving.
+        currentHike = Hike()
     }
     
     // CLLocationManagerDelegate method.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let newLocation = locations.last else { return }
         currentHike.coordinates.append(newLocation.coordinate)
-        // Publish the updated hike.
         DispatchQueue.main.async {
             self.objectWillChange.send()
         }
