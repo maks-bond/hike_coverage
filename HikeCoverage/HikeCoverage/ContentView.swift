@@ -7,15 +7,17 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            ZStack(alignment: .top) {
-                MapView(hikes: $recorder.allHikes,
-                        currentHike: $recorder.currentHike,
-                        selectedHike: $selectedHike)
-                    .edgesIgnoringSafeArea(.all)
+            ZStack(alignment: .topTrailing) {
+                MapView(
+                    hikes: $recorder.allHikes,
+                    currentHike: $recorder.currentHike,
+                    selectedHike: $selectedHike,
+                    userLocation: $recorder.userLocation
+                )
+                .edgesIgnoringSafeArea(.all)
                 
                 VStack {
                     HStack {
-                        // Status indicator.
                         if recorder.isRecording {
                             Label("Recording...", systemImage: "record.circle")
                                 .padding(8)
@@ -30,9 +32,7 @@ struct ContentView: View {
                                 .cornerRadius(8)
                         }
                         Spacer()
-                        Button(action: {
-                            showRoutesList = true
-                        }) {
+                        Button(action: { showRoutesList = true }) {
                             Text("Routes")
                                 .padding(8)
                                 .background(Color.blue)
@@ -44,10 +44,9 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    HStack(spacing: 20) {
+                    HStack {
                         Button(action: {
                             recorder.startRecording()
-                            // Clear selected route when starting a new recording.
                             selectedHike = nil
                         }) {
                             Text("Start Recording")
@@ -64,27 +63,4 @@ struct ContentView: View {
                             Text("Stop Recording")
                                 .padding()
                                 .background(Color.red)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                        }
-                        .disabled(!recorder.isRecording)
-                    }
-                    .padding(.bottom, 20)
-                }
-            }
-            .navigationBarHidden(true)
-            .sheet(isPresented: $showRoutesList) {
-                RoutesListView(hikes: recorder.allHikes) { hike in
-                    selectedHike = hike
-                    showRoutesList = false
-                }
-            }
-        }
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
-}
+                                .f

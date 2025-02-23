@@ -20,6 +20,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C98935DB2D6ADBC70063A6F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C9D2E4B42D6A83E3002A0A5C /* HikeCoverage.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HikeCoverage.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9D2E4B92D6A83E3002A0A5C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C9D2E4BB2D6A83E6002A0A5C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -47,7 +48,6 @@
 		C9D2E4AB2D6A83E3002A0A5C = {
 			isa = PBXGroup;
 			children = (
-				C9D2E4D82D6A904A002A0A5C /* RoutesListView.swift */,
 				C9D2E4B62D6A83E3002A0A5C /* HikeCoverage */,
 				C9D2E4B52D6A83E3002A0A5C /* Products */,
 			);
@@ -64,12 +64,14 @@
 		C9D2E4B62D6A83E3002A0A5C /* HikeCoverage */ = {
 			isa = PBXGroup;
 			children = (
+				C98935DB2D6ADBC70063A6F0 /* Info.plist */,
 				C9D2E4B92D6A83E3002A0A5C /* ContentView.swift */,
 				C9D2E4BB2D6A83E6002A0A5C /* Assets.xcassets */,
 				C9D2E4C02D6A83E6002A0A5C /* Persistence.swift */,
 				C9D2E4C22D6A83E6002A0A5C /* HikeCoverage.xcdatamodeld */,
 				C9D2E4BD2D6A83E6002A0A5C /* Preview Content */,
 				C9D2E4CE2D6A866F002A0A5C /* HikeApp.swift */,
+				C9D2E4D82D6A904A002A0A5C /* RoutesListView.swift */,
 				C9D2E4D02D6A8683002A0A5C /* Hike.swift */,
 				C9D2E4D22D6A86AB002A0A5C /* HikeRecorder.swift */,
 				C9D2E4D42D6A86DF002A0A5C /* MapView.swift */,
@@ -294,6 +296,7 @@
 				DEVELOPMENT_TEAM = 3G6748X9WG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HikeCoverage/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your location to record your hikes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -324,6 +327,7 @@
 				DEVELOPMENT_TEAM = 3G6748X9WG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HikeCoverage/Info.plist;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your location to record your hikes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

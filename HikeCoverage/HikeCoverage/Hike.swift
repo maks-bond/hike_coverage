@@ -1,10 +1,10 @@
 import Foundation
 import CoreLocation
 
-// A simple model representing a hike.
+// A model representing a recorded hike.
 struct Hike: Codable, Identifiable {
-    var id: UUID = UUID()
-    var date: Date = Date()
+    var id: UUID = UUID()  // Unique identifier
+    var date: Date = Date()  // Timestamp for the hike
     var coordinates: [CLLocationCoordinate2D] = []
     
     // Helper struct for encoding/decoding coordinates.

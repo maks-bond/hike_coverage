@@ -2,21 +2,28 @@ import Foundation
 import CoreLocation
 import Combine
 
-// ObservableObject that handles location tracking and persistence.
 class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var currentHike: Hike = Hike()
     @Published var allHikes: [Hike] = []
     @Published var isRecording: Bool = false
+    @Published var userLocation: CLLocationCoordinate2D? = nil  // Store current location
     
     private var locationManager = CLLocationManager()
     
     override init() {
         super.init()
         locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        // Request location permission.
-        locationManager.requestWhenInUseAuthorization()
+        locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+        locationManager.requestAlwaysAuthorization()  // Request "Always" permission
+        locationManager.allowsBackgroundLocationUpdates = true  // Enable background updates
+        locationManager.distanceFilter = 10
+        locationManager.pausesLocationUpdatesAutomatically = false  // Prevent auto-pausing
+        locationManager.startUpdatingLocation()  // Get initial location
         loadHikes()
+        
+        if locationManager.authorizationStatus == .authorizedWhenInUse {
+            locationManager.requestAlwaysAuthorization()  // Prompt user for Always access
+        }
     }
     
     func startRecording() {
@@ -29,17 +36,41 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.stopUpdatingLocation()
         isRecording = false
         saveHike(currentHike)
-        // Clear currentHike after saving.
         currentHike = Hike()
     }
     
-    // CLLocationManagerDelegate method.
+    // Handle location updates
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let newLocation = locations.last else { return }
-        currentHike.coordinates.append(newLocation.coordinate)
+        
+        // Store user location
+        if userLocation == nil { // Only set it once when app opens
+            userLocation = newLocation.coordinate
+        }
+        
+        if isRecording {
+            currentHike.coordinates.append(newLocation.coordinate)
+        }
+        
         DispatchQueue.main.async {
             self.objectWillChange.send()
         }
+    }
+    
+    func applicationDidEnterBackground() {
+        if isRecording {
+            locationManager.startUpdatingLocation()  // Ensure tracking continues
+        }
+    }
+
+    func applicationWillEnterForeground() {
+        locationManager.startUpdatingLocation()  // Restart updates if needed
+    }
+    
+    // MARK: - Delete Route
+    func deleteHike(_ hike: Hike) {
+        allHikes.removeAll { $0.id == hike.id }
+        saveHikesToFile()
     }
     
     // MARK: - Persistence
@@ -52,13 +83,17 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     private func saveHike(_ hike: Hike) {
         allHikes.append(hike)
+        saveHikesToFile()
+    }
+    
+    private func saveHikesToFile() {
         if let url = getHikesFileURL() {
             do {
                 let data = try JSONEncoder().encode(allHikes)
                 try data.write(to: url)
-                print("Hike saved to \(url)")
+                print("Hikes saved to \(url)")
             } catch {
-                print("Error saving hike: \(error)")
+                print("Error saving hikes: \(error)")
             }
         }
     }

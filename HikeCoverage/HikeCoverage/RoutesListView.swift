@@ -1,32 +1,34 @@
 import SwiftUI
 
-// A view that lists recorded hikes. When a route is tapped, it calls onSelect.
 struct RoutesListView: View {
-    var hikes: [Hike]
+    @ObservedObject var recorder: HikeRecorder
     var onSelect: (Hike) -> Void
     
     var body: some View {
-        NavigationView {
-            List(hikes) { hike in
-                Button(action: {
-                    onSelect(hike)
-                }) {
+        List {
+            ForEach(recorder.allHikes) { hike in
+                HStack {
                     VStack(alignment: .leading) {
                         Text("Hike on \(formattedDate(hike.date))")
                         Text("\(hike.coordinates.count) points")
                             .font(.subheadline)
                             .foregroundColor(.gray)
                     }
+                    Spacer()
+                    Button(action: { recorder.deleteHike(hike) }) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
                 }
+                .onTapGesture { onSelect(hike) }
             }
-            .navigationTitle("Recorded Hikes")
         }
+        .navigationTitle("Recorded Hikes")
     }
     
     func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
-        formatter.timeStyle = .short
         return formatter.string(from: date)
     }
 }
