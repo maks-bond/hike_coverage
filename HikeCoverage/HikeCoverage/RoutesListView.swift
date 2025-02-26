@@ -6,39 +6,55 @@ struct RoutesListView: View {
 
     @State private var hikeToDelete: Hike?  // Store selected hike for deletion
     @State private var showDeleteConfirmation = false  // Show confirmation alert
-
+    @State private var selectedHikeForNotes: Hike?  // Store hike for notes editing
+    
     var body: some View {
         NavigationView {
             List {
                 ForEach(recorder.allHikes) { hike in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("Hike on \(formattedDate(hike.date))")
-                            Text("\(hike.coordinates.count) points")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                    VStack(alignment: .leading) {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("Hike on \(formattedDate(hike.date))")
+                                Text("\(hike.coordinates.count) points")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .onTapGesture { onSelect(hike) }
+                            
+                            // Delete Button
+                            Button(action: {
+                                hikeToDelete = hike
+                                showDeleteConfirmation = true
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                                    .padding(10)
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading) // Makes text fully occupy available space
-                        .contentShape(Rectangle()) // Ensures tap is recognized only inside text area
-                        .onTapGesture { onSelect(hike) }
-
-                        // Delete Button
+                        
+                        // Edit Notes Button
                         Button(action: {
-                            hikeToDelete = hike  // Store hike to be deleted
-                            showDeleteConfirmation = true  // Show alert
+                            selectedHikeForNotes = hike
                         }) {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red)
-                                .padding(10)
+                            HStack {
+                                Image(systemName: "note.text")
+                                Text(hike.notes.isEmpty ? "Add Notes" : "Edit Notes")
+                            }
+                            .padding(6)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(6)
                         }
-                        .buttonStyle(PlainButtonStyle()) // Prevents SwiftUI from adding extra button padding behavior
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             }
             .navigationTitle("Recorded Hikes")
             .alert("Are you sure you want to delete this hike?", isPresented: $showDeleteConfirmation) {
                 Button("Cancel", role: .cancel) {
-                    hikeToDelete = nil  // Cancel deletion
+                    hikeToDelete = nil
                 }
                 Button("Delete", role: .destructive) {
                     if let hike = hikeToDelete {
@@ -46,6 +62,9 @@ struct RoutesListView: View {
                     }
                     hikeToDelete = nil
                 }
+            }
+            .sheet(item: $selectedHikeForNotes) { hike in
+                EditHikeNotesView(recorder: recorder, hike: hike)
             }
         }
     }

@@ -42,19 +42,22 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     // Handle location updates
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let newLocation = locations.last else { return }
-        
-        // Store user location
-        if userLocation == nil { // Only set it once when app opens
-            userLocation = newLocation.coordinate
-        }
-        
-        if isRecording {
-            currentHike.coordinates.append(newLocation.coordinate)
-        }
-        
+
         DispatchQueue.main.async {
-            self.objectWillChange.send()
+            if self.userLocation == nil {
+                self.userLocation = newLocation.coordinate  // ✅ Ensure first-time location is set
+            }
+
+            if self.isRecording {
+                self.currentHike.coordinates.append(newLocation.coordinate)  // ✅ Keeps hike tracking
+            }
+            
+            self.objectWillChange.send()  // ✅ Ensures UI updates properly
         }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Location Manager Error: \(error.localizedDescription)")
     }
     
     func applicationDidEnterBackground() {
@@ -67,6 +70,20 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.startUpdatingLocation()  // Restart updates if needed
     }
     
+    // Updates notes for a selected hike
+    func updateHikeNotes(hike: Hike, newNotes: String) {
+        if let index = allHikes.firstIndex(where: { $0.id == hike.id }) {
+            allHikes[index].notes = newNotes
+            saveHikesToFile()
+        }
+    }
+
+    func requestInitialLocation() {
+        if userLocation == nil {
+            locationManager.requestLocation()  // Ensure at least one location update
+        }
+    }
+
     // MARK: - Delete Route
     func deleteHike(_ hike: Hike) {
         allHikes.removeAll { $0.id == hike.id }

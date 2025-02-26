@@ -1,22 +1,36 @@
 import SwiftUI
-import MapKit
+import MapKit  // Ensure MapKit is imported
 
 struct ContentView: View {
     @StateObject var recorder = HikeRecorder()
     @State private var showRoutesList = false
     @State private var selectedHike: Hike? = nil
-    
+
     var body: some View {
         NavigationView {
             ZStack(alignment: .topTrailing) {
-                MapView(
-                    hikes: $recorder.allHikes,
-                    currentHike: $recorder.currentHike,
-                    selectedHike: $selectedHike,
-                    userLocation: $recorder.userLocation
-                )
-                .edgesIgnoringSafeArea(.all)
-                
+                // ✅ Ensure MapView only loads if userLocation is valid
+                if let userLocation = recorder.userLocation {
+                    MapView(
+                        hikes: $recorder.allHikes,
+                        currentHike: $recorder.currentHike,
+                        selectedHike: $selectedHike,
+                        userLocation: Binding.constant(userLocation)  // Use constant to prevent SwiftUI crashes
+                    )
+                    .edgesIgnoringSafeArea(.all)
+                } else {
+                    VStack {
+                        Text("Loading map...")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                        
+                        ProgressView()  // Show spinner while waiting
+                            .padding()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.gray.opacity(0.2))
+                }
+
                 VStack {
                     HStack {
                         // Recording Status Indicator
@@ -103,11 +117,9 @@ struct ContentView: View {
                 }
             }
         }
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
+        .onAppear {
+            // ✅ Ensure userLocation is requested early
+            recorder.requestInitialLocation()
+        }
     }
 }
