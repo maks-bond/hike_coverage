@@ -1,0 +1,5 @@
+1. Ensure that there are no jumps of the map when recording at all. Currently it seems to jump to the initial location. Unclear when.
+2. Visualize route while recording. This regressed.
+3. Change the color of selected route. Currently it is green which doesn't work.
+4. Compute the distance in miles for each route. Store it too.
+5. Store the route in the cloud.
