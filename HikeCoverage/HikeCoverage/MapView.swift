@@ -37,6 +37,14 @@ struct MapView: UIViewRepresentable {
             }
             uiView.addOverlay(polyline)
         }
+
+        // ✅ Ensure the current hike is displayed in red while recording
+        if !currentHike.coordinates.isEmpty {
+            var coords = currentHike.coordinates
+            let polyline = MKPolyline(coordinates: &coords, count: coords.count)
+            polyline.title = "current"  // Tag as the current hike
+            uiView.addOverlay(polyline)
+        }
     }
 
     func makeCoordinator() -> Coordinator {
@@ -59,7 +67,18 @@ struct MapView: UIViewRepresentable {
         
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             let renderer = MKPolylineRenderer(overlay: overlay)
-            renderer.strokeColor = overlay.title == "selected" ? UIColor.green : UIColor.blue
+            
+            // ✅ Ensure current hike is red, selected hike is green, and others are blue
+            if let polyline = overlay as? MKPolyline {
+                if polyline.title == "current" {
+                    renderer.strokeColor = UIColor.red  // Recording route in red
+                } else if polyline.title == "selected" {
+                    renderer.strokeColor = UIColor.orange  // Selected hike in orange
+                } else {
+                    renderer.strokeColor = UIColor.blue  // Saved hikes in blue
+                }
+            }
+            
             renderer.lineWidth = 3
             return renderer
         }

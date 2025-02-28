@@ -21,9 +21,14 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.startUpdatingLocation()  // Get initial location
         loadHikes()
         
-        if locationManager.authorizationStatus == .authorizedWhenInUse {
-            locationManager.requestAlwaysAuthorization()  // Prompt user for Always access
+        // ✅ Explicitly request location permissions
+        if locationManager.authorizationStatus == .notDetermined {
+            locationManager.requestWhenInUseAuthorization()
+        } else if locationManager.authorizationStatus == .authorizedWhenInUse {
+            locationManager.requestAlwaysAuthorization() // Upgrade if needed
         }
+            
+        locationManager.startUpdatingLocation()
     }
     
     func startRecording() {
@@ -50,9 +55,11 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
 
             if self.isRecording {
                 self.currentHike.coordinates.append(newLocation.coordinate)  // ✅ Keeps hike tracking
+                self.objectWillChange.send()  // ✅ Ensure UI updates after each new coordinate
+            } else {
+                // ✅ Ensure object updates even if not recording (fix for live location updates)
+                self.objectWillChange.send()
             }
-            
-            self.objectWillChange.send()  // ✅ Ensures UI updates properly
         }
     }
     

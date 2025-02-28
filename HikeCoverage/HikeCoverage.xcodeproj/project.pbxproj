@@ -301,7 +301,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HikeCoverage/Info.plist;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your location to record your hikes.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "\"This app requires your location to record your hikes and provide accurate route tracking.\"";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "\"Enabling background location will allow tracking your hikes even if the app is minimized.\"";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "\"This app needs your location to record hikes and show your route on the map.\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -332,7 +334,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HikeCoverage/Info.plist;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your location to record your hikes.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "\"This app requires your location to record your hikes and provide accurate route tracking.\"";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "\"Enabling background location will allow tracking your hikes even if the app is minimized.\"";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "\"This app needs your location to record hikes and show your route on the map.\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
