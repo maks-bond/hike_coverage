@@ -90,13 +90,8 @@ struct ContentView: View {
                         
                         // Re-Center Button - Centers map on user's location
                         Button(action: {
-                            if let location = recorder.userLocation {
-                                let region = MKCoordinateRegion(
-                                    center: location,
-                                    latitudinalMeters: 500,
-                                    longitudinalMeters: 500
-                                )
-                                recorder.objectWillChange.send()  // Ensures UI updates
+                            if recorder.userLocation != nil {
+                                recorder.shouldRecenterOnLocationUpdate = true  // ✅ Triggers ONE re-center on next location update
                             }
                         }) {
                             Image(systemName: "location.fill")

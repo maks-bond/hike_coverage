@@ -19,14 +19,14 @@ struct MapView: UIViewRepresentable {
     
     func updateUIView(_ uiView: MKMapView, context: Context) {
         uiView.removeOverlays(uiView.overlays)
-        
-        // Center the map on user location when the app first opens
+
+        // ✅ Only center on user location once (on first load)
         if let location = userLocation, !hasCenteredOnUser {
             let region = MKCoordinateRegion(center: location, latitudinalMeters: 500, longitudinalMeters: 500)
             uiView.setRegion(region, animated: true)
-            hasCenteredOnUser = true  // Prevents re-centering every update
+            hasCenteredOnUser = true  // ✅ Prevents re-centering on every update
         }
-        
+
         // Draw saved routes
         for hike in hikes {
             var coords = hike.coordinates
@@ -38,11 +38,11 @@ struct MapView: UIViewRepresentable {
             uiView.addOverlay(polyline)
         }
 
-        // ✅ Ensure the current hike is displayed in red while recording
+        // ✅ Ensure the current hike is displayed but does not change map focus
         if !currentHike.coordinates.isEmpty {
             var coords = currentHike.coordinates
             let polyline = MKPolyline(coordinates: &coords, count: coords.count)
-            polyline.title = "current"  // Tag as the current hike
+            polyline.title = "current"
             uiView.addOverlay(polyline)
         }
     }

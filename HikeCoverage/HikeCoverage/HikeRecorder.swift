@@ -9,6 +9,7 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var userLocation: CLLocationCoordinate2D? = nil  // Store current location
     
     private var locationManager = CLLocationManager()
+    var shouldRecenterOnLocationUpdate = true
     
     override init() {
         super.init()
@@ -49,16 +50,17 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
         guard let newLocation = locations.last else { return }
 
         DispatchQueue.main.async {
-            if self.userLocation == nil {
-                self.userLocation = newLocation.coordinate  // ✅ Ensure first-time location is set
+            // ✅ Only update userLocation ONCE unless manually requested
+            if self.userLocation == nil || self.shouldRecenterOnLocationUpdate {
+                self.userLocation = newLocation.coordinate
+                self.shouldRecenterOnLocationUpdate = false  // Reset after re-centering
             }
 
             if self.isRecording {
                 self.currentHike.coordinates.append(newLocation.coordinate)  // ✅ Keeps hike tracking
                 self.objectWillChange.send()  // ✅ Ensure UI updates after each new coordinate
             } else {
-                // ✅ Ensure object updates even if not recording (fix for live location updates)
-                self.objectWillChange.send()
+                self.objectWillChange.send()  // ✅ Ensure live location updates in UI
             }
         }
     }
