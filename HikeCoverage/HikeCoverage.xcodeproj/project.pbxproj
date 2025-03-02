@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		C930E79A2D6EE5F200D9F9C3 /* EditHikeNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C930E7992D6EE55900D9F9C3 /* EditHikeNotesView.swift */; };
+		C930E79D2D73E7CA00D9F9C3 /* AWSCognitoIdentityProvider in Frameworks */ = {isa = PBXBuildFile; productRef = C930E79C2D73E7CA00D9F9C3 /* AWSCognitoIdentityProvider */; };
+		C930E79F2D73E7CA00D9F9C3 /* AWSDynamoDB in Frameworks */ = {isa = PBXBuildFile; productRef = C930E79E2D73E7CA00D9F9C3 /* AWSDynamoDB */; };
+		C930E7A32D73ECE900D9F9C3 /* HikeRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C930E7A22D73ECE900D9F9C3 /* HikeRecord.swift */; };
 		C9D2E4BA2D6A83E3002A0A5C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D2E4B92D6A83E3002A0A5C /* ContentView.swift */; };
 		C9D2E4BC2D6A83E6002A0A5C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C9D2E4BB2D6A83E6002A0A5C /* Assets.xcassets */; };
 		C9D2E4BF2D6A83E6002A0A5C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C9D2E4BE2D6A83E6002A0A5C /* Preview Assets.xcassets */; };
@@ -22,6 +25,7 @@
 
 /* Begin PBXFileReference section */
 		C930E7992D6EE55900D9F9C3 /* EditHikeNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditHikeNotesView.swift; sourceTree = "<group>"; };
+		C930E7A22D73ECE900D9F9C3 /* HikeRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HikeRecord.swift; sourceTree = "<group>"; };
 		C98935DB2D6ADBC70063A6F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C9D2E4B42D6A83E3002A0A5C /* HikeCoverage.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HikeCoverage.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9D2E4B92D6A83E3002A0A5C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -41,6 +45,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C930E79F2D73E7CA00D9F9C3 /* AWSDynamoDB in Frameworks */,
+				C930E79D2D73E7CA00D9F9C3 /* AWSCognitoIdentityProvider in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,6 +72,7 @@
 		C9D2E4B62D6A83E3002A0A5C /* HikeCoverage */ = {
 			isa = PBXGroup;
 			children = (
+				C930E7A22D73ECE900D9F9C3 /* HikeRecord.swift */,
 				C98935DB2D6ADBC70063A6F0 /* Info.plist */,
 				C9D2E4B92D6A83E3002A0A5C /* ContentView.swift */,
 				C9D2E4BB2D6A83E6002A0A5C /* Assets.xcassets */,
@@ -134,6 +141,9 @@
 				Base,
 			);
 			mainGroup = C9D2E4AB2D6A83E3002A0A5C;
+			packageReferences = (
+				C930E79B2D73E7CA00D9F9C3 /* XCRemoteSwiftPackageReference "aws-sdk-ios-spm" */,
+			);
 			productRefGroup = C9D2E4B52D6A83E3002A0A5C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -165,6 +175,7 @@
 				C9D2E4D52D6A86DF002A0A5C /* MapView.swift in Sources */,
 				C9D2E4C12D6A83E6002A0A5C /* Persistence.swift in Sources */,
 				C9D2E4CF2D6A866F002A0A5C /* HikeApp.swift in Sources */,
+				C930E7A32D73ECE900D9F9C3 /* HikeRecord.swift in Sources */,
 				C930E79A2D6EE5F200D9F9C3 /* EditHikeNotesView.swift in Sources */,
 				C9D2E4BA2D6A83E3002A0A5C /* ContentView.swift in Sources */,
 				C9D2E4C42D6A83E6002A0A5C /* HikeCoverage.xcdatamodeld in Sources */,
@@ -377,6 +388,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C930E79B2D73E7CA00D9F9C3 /* XCRemoteSwiftPackageReference "aws-sdk-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/aws-amplify/aws-sdk-ios-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.40.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C930E79C2D73E7CA00D9F9C3 /* AWSCognitoIdentityProvider */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C930E79B2D73E7CA00D9F9C3 /* XCRemoteSwiftPackageReference "aws-sdk-ios-spm" */;
+			productName = AWSCognitoIdentityProvider;
+		};
+		C930E79E2D73E7CA00D9F9C3 /* AWSDynamoDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C930E79B2D73E7CA00D9F9C3 /* XCRemoteSwiftPackageReference "aws-sdk-ios-spm" */;
+			productName = AWSDynamoDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		C9D2E4C22D6A83E6002A0A5C /* HikeCoverage.xcdatamodeld */ = {
