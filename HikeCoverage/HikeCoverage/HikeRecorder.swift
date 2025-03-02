@@ -49,18 +49,15 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let newLocation = locations.last else { return }
 
-        if isRecording {
-            DispatchQueue.main.async {
-                self.currentHike.coordinates.append(newLocation.coordinate)
-                self.objectWillChange.send() // Ensure UI updates for new hike points
-            }
-        }
-
-        // ✅ Schedule userLocation update separately without interfering with SwiftUI updates
         DispatchQueue.main.async {
-            if self.userLocation == nil || self.shouldRecenterOnLocationUpdate {
+            // ✅ Only update userLocation if auto-follow is enabled
+            if self.shouldRecenterOnLocationUpdate {
                 self.userLocation = newLocation.coordinate
-                self.shouldRecenterOnLocationUpdate = false
+            }
+
+            if self.isRecording {
+                self.currentHike.coordinates.append(newLocation.coordinate)
+                self.objectWillChange.send()
             }
         }
     }

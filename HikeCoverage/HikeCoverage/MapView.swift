@@ -14,8 +14,11 @@ struct MapView: UIViewRepresentable {
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
         mapView.userTrackingMode = .none
+
+        // ✅ Detect when the user manually moves the map
         let panGesture = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMapDrag(_:)))
         mapView.addGestureRecognizer(panGesture)
+
         return mapView
     }
 
@@ -33,9 +36,9 @@ struct MapView: UIViewRepresentable {
             let currentRegion = uiView.region
             let newRegion = MKCoordinateRegion(center: location, latitudinalMeters: 500, longitudinalMeters: 500)
 
-            // ✅ Only update if the center has changed significantly
-            if abs(currentRegion.center.latitude - newRegion.center.latitude) > 0.0001 ||
-               abs(currentRegion.center.longitude - newRegion.center.longitude) > 0.0001 {
+            // ✅ Only update if the user has NOT moved the map
+            if abs(currentRegion.center.latitude - newRegion.center.latitude) > 0.0005 ||
+               abs(currentRegion.center.longitude - newRegion.center.longitude) > 0.0005 {
                 uiView.setRegion(newRegion, animated: true)
             }
         }
@@ -71,7 +74,9 @@ struct MapView: UIViewRepresentable {
 
         @objc func handleMapDrag(_ gesture: UIPanGestureRecognizer) {
             if gesture.state == .began {
-                parent.shouldFollowUser = false  // Disable following when the user moves the map
+                DispatchQueue.main.async {
+                    self.parent.shouldFollowUser = false  // ✅ Stop auto-following when user moves map
+                }
             }
         }
 

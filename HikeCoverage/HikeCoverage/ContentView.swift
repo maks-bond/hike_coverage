@@ -169,7 +169,8 @@ struct ContentView: View {
                         .disabled(!recorder.isRecording)
 
                         Button(action: {
-                            recorder.shouldFollowUser = true  // Re-enable following mode
+                            recorder.shouldRecenterOnLocationUpdate = true
+                            recorder.userLocation = recorder.userLocation  // ✅ Force update to trigger UI refresh
                         }) {
                             Image(systemName: "location.fill")
                                 .padding()
