@@ -63,14 +63,14 @@ struct ContentView: View {
     }
 
     func fetchHikesFromDynamoDB() {
-        let scanExpression = AWSDynamoDBScanExpression()
-        scanExpression.filterExpression = "user_uuid = :uuid"
-        if let userUUID = UIDevice.current.identifierForVendor?.uuidString {
-            scanExpression.expressionAttributeValues = [":uuid": userUUID]
-        } else {
+        guard let userUUID = UIDevice.current.identifierForVendor?.uuidString else {
             print("Error: Could not retrieve user UUID")
             return
         }
+
+        let scanExpression = AWSDynamoDBScanExpression()
+        scanExpression.filterExpression = "user_uuid = :uuid"
+        scanExpression.expressionAttributeValues = [":uuid": userUUID]
 
         let dynamoDBObjectMapper = AWSDynamoDBObjectMapper.default()
         dynamoDBObjectMapper.scan(HikeRecord.self, expression: scanExpression).continueWith { task -> Any? in
@@ -78,9 +78,11 @@ struct ContentView: View {
                 print("Error fetching hikes: \(error)")
             } else if let result = task.result {
                 DispatchQueue.main.async {
-                    recorder.allHikes = result.items as? [Hike] ?? []
+                    let fetchedHikes = result.items as? [HikeRecord] ?? []
+                    print("Fetched \(fetchedHikes.count) hikes from AWS")
+                    
+                    recorder.allHikes = fetchedHikes.map { Hike(from: $0) }
                 }
-                print("Fetched \(result.items.count) hikes")
             }
             return nil
         }

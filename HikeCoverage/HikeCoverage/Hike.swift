@@ -14,6 +14,23 @@ struct Hike: Codable, Identifiable {
         let longitude: Double
     }
     
+    func decodeCoordinates(_ locationString: String) -> [CLLocationCoordinate2D] {
+        return locationString.split(separator: ";").compactMap { coord in
+            let parts = coord.split(separator: ",")
+            if parts.count == 2, let lat = Double(parts[0]), let lon = Double(parts[1]) {
+                return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            }
+            return nil
+        }
+    }
+
+    init(from record: HikeRecord) {
+        self.id = UUID(uuidString: record.hike_id ?? "") ?? UUID()
+        self.date = Date(timeIntervalSince1970: record.start_time?.doubleValue ?? 0)
+        self.coordinates = decodeCoordinates(record.location ?? "")
+        self.notes = record.notes ?? ""
+    }
+
     // Custom encoding.
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
