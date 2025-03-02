@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RoutesListView: View {
     @ObservedObject var recorder: HikeRecorder
+    var userName: String  // ✅ Added user name
     var onSelect: (Hike) -> Void
 
     @State private var hikeToDelete: Hike?  // Store selected hike for deletion
@@ -10,44 +11,51 @@ struct RoutesListView: View {
     
     var body: some View {
         NavigationView {
-            List {
-                ForEach(recorder.allHikes) { hike in
-                    VStack(alignment: .leading) {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("Hike on \(formattedDate(hike.date))")
-                                Text("\(hike.coordinates.count) points")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
+            VStack {
+                // ✅ Display user name at the top of the list
+                Text("\(userName)'s Recorded Hikes")
+                    .font(.headline)
+                    .padding()
+
+                List {
+                    ForEach(recorder.allHikes) { hike in
+                        VStack(alignment: .leading) {
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text("Hike on \(formattedDate(hike.date))")
+                                    Text("\(hike.coordinates.count) points")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .onTapGesture { onSelect(hike) }
+                                
+                                // Delete Button
+                                Button(action: {
+                                    hikeToDelete = hike
+                                    showDeleteConfirmation = true
+                                }) {
+                                    Image(systemName: "trash")
+                                        .foregroundColor(.red)
+                                        .padding(10)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .onTapGesture { onSelect(hike) }
                             
-                            // Delete Button
+                            // Edit Notes Button
                             Button(action: {
-                                hikeToDelete = hike
-                                showDeleteConfirmation = true
+                                selectedHikeForNotes = hike
                             }) {
-                                Image(systemName: "trash")
-                                    .foregroundColor(.red)
-                                    .padding(10)
+                                HStack {
+                                    Image(systemName: "note.text")
+                                    Text(hike.notes.isEmpty ? "Add Notes" : "Edit Notes")
+                                }
+                                .padding(6)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(6)
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        
-                        // Edit Notes Button
-                        Button(action: {
-                            selectedHikeForNotes = hike
-                        }) {
-                            HStack {
-                                Image(systemName: "note.text")
-                                Text(hike.notes.isEmpty ? "Add Notes" : "Edit Notes")
-                            }
-                            .padding(6)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(6)
-                        }
-                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             }

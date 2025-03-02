@@ -1,7 +1,6 @@
 import SwiftUI
 import MapKit
 import CoreLocation
-
 import AWSCore
 import AWSCognitoIdentityProvider
 import AWSDynamoDB
@@ -10,7 +9,9 @@ struct ContentView: View {
     @StateObject var recorder = HikeRecorder()
     @State private var showRoutesList = false
     @State private var selectedHike: Hike? = nil
-    
+    @State private var userName: String = UserSettings.shared.userName ?? ""
+    @State private var showNamePrompt = false
+
     func testCognitoAuthentication() {
         let credentialsProvider = AWSCognitoCredentialsProvider(regionType: .USEast2, identityPoolId: "us-east-2:8c2593f4-6c74-4321-8c38-5987c6ffcad9")
         credentialsProvider.getIdentityId().continueWith { (task) -> Any? in
@@ -37,15 +38,20 @@ struct ContentView: View {
     func encodeCoordinates(_ coordinates: [CLLocationCoordinate2D]) -> String {
         return coordinates.map { "\($0.latitude),\($0.longitude)" }.joined(separator: ";")
     }
-    
+
     func saveHikeToDynamoDB(hike: Hike) {
         guard let dbHike = HikeRecord() else {
             print("Failed to create HikeRecord")
             return
         }
         
+        guard !userName.isEmpty else {
+            print("User name is empty. Cannot save hike.")
+            return
+        }
+
         dbHike.hike_id = hike.id.uuidString
-        dbHike.user_uuid = UIDevice.current.identifierForVendor?.uuidString
+        dbHike.user_uuid = userName  // ✅ Store hikes under the user’s name instead of UUID
         dbHike.hike_name = "Hike on \(hike.date)"
         dbHike.start_time = NSNumber(value: hike.date.timeIntervalSince1970)
         dbHike.distance = NSNumber(value: calculateDistance(hike.coordinates))
@@ -63,14 +69,14 @@ struct ContentView: View {
     }
 
     func fetchHikesFromDynamoDB() {
-        guard let userUUID = UIDevice.current.identifierForVendor?.uuidString else {
-            print("Error: Could not retrieve user UUID")
+        guard !userName.isEmpty else {
+            print("User name is empty. Cannot fetch hikes.")
             return
         }
 
         let scanExpression = AWSDynamoDBScanExpression()
-        scanExpression.filterExpression = "user_uuid = :uuid"
-        scanExpression.expressionAttributeValues = [":uuid": userUUID]
+        scanExpression.filterExpression = "user_uuid = :userName"
+        scanExpression.expressionAttributeValues = [":userName": userName]  // ✅ Filter by user name instead of UUID
 
         let dynamoDBObjectMapper = AWSDynamoDBObjectMapper.default()
         dynamoDBObjectMapper.scan(HikeRecord.self, expression: scanExpression).continueWith { task -> Any? in
@@ -79,7 +85,7 @@ struct ContentView: View {
             } else if let result = task.result {
                 DispatchQueue.main.async {
                     let fetchedHikes = result.items as? [HikeRecord] ?? []
-                    print("Fetched \(fetchedHikes.count) hikes from AWS")
+                    print("Fetched \(fetchedHikes.count) hikes from AWS for user: \(userName)")
                     
                     recorder.allHikes = fetchedHikes.map { Hike(from: $0) }
                 }
@@ -128,7 +134,7 @@ struct ContentView: View {
                                 .cornerRadius(8)
                         }
                         Spacer()
-                        
+
                         Button(action: { showRoutesList = true }) {
                             Text("Routes")
                                 .padding(8)
@@ -138,9 +144,9 @@ struct ContentView: View {
                         }
                     }
                     .padding()
-                    
+
                     Spacer()
-                    
+
                     HStack {
                         Button(action: {
                             recorder.startRecording()
@@ -153,7 +159,7 @@ struct ContentView: View {
                                 .cornerRadius(8)
                         }
                         .disabled(recorder.isRecording)
-                        
+
                         Button(action: {
                             recorder.stopRecording()
                             if let lastHike = recorder.allHikes.last {
@@ -170,7 +176,7 @@ struct ContentView: View {
 
                         Button(action: {
                             recorder.shouldRecenterOnLocationUpdate = true
-                            recorder.userLocation = recorder.userLocation  // ✅ Force update to trigger UI refresh
+                            recorder.userLocation = recorder.userLocation
                         }) {
                             Image(systemName: "location.fill")
                                 .padding()
@@ -184,7 +190,7 @@ struct ContentView: View {
             }
             .navigationBarHidden(true)
             .sheet(isPresented: $showRoutesList) {
-                RoutesListView(recorder: recorder) { hike in
+                RoutesListView(recorder: recorder, userName: userName) { hike in
                     selectedHike = hike
                     showRoutesList = false
                 }
@@ -194,6 +200,12 @@ struct ContentView: View {
             recorder.requestInitialLocation()
             testCognitoAuthentication()
             fetchHikesFromDynamoDB()
+            if userName.isEmpty {
+                showNamePrompt = true
+            }
+        }
+        .sheet(isPresented: $showNamePrompt) {
+            NameEntryView(userName: $userName)
         }
     }
 }
