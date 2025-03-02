@@ -2,17 +2,17 @@ import SwiftUI
 
 struct RoutesListView: View {
     @ObservedObject var recorder: HikeRecorder
-    var userName: String  // ✅ Added user name
+    var userName: String
+    var onDeleteHike: (Hike) -> Void  // ✅ Function to delete from cloud
     var onSelect: (Hike) -> Void
 
-    @State private var hikeToDelete: Hike?  // Store selected hike for deletion
-    @State private var showDeleteConfirmation = false  // Show confirmation alert
-    @State private var selectedHikeForNotes: Hike?  // Store hike for notes editing
-    
+    @State private var hikeToDelete: Hike?
+    @State private var showDeleteConfirmation = false
+    @State private var selectedHikeForNotes: Hike?
+
     var body: some View {
         NavigationView {
             VStack {
-                // ✅ Display user name at the top of the list
                 Text("\(userName)'s Recorded Hikes")
                     .font(.headline)
                     .padding()
@@ -29,7 +29,7 @@ struct RoutesListView: View {
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .onTapGesture { onSelect(hike) }
-                                
+
                                 // Delete Button
                                 Button(action: {
                                     hikeToDelete = hike
@@ -41,7 +41,7 @@ struct RoutesListView: View {
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
-                            
+
                             // Edit Notes Button
                             Button(action: {
                                 selectedHikeForNotes = hike
@@ -66,7 +66,7 @@ struct RoutesListView: View {
                 }
                 Button("Delete", role: .destructive) {
                     if let hike = hikeToDelete {
-                        recorder.deleteHike(hike)
+                        onDeleteHike(hike)  // ✅ Delete from AWS
                     }
                     hikeToDelete = nil
                 }

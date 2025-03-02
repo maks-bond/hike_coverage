@@ -11,14 +11,17 @@ struct ContentView: View {
     @State private var selectedHike: Hike? = nil
     @State private var userName: String = UserSettings.shared.userName ?? ""
     @State private var showNamePrompt = false
+    @State private var isLoading = true  // ✅ Prevents UI freeze
 
     func testCognitoAuthentication() {
         let credentialsProvider = AWSCognitoCredentialsProvider(regionType: .USEast2, identityPoolId: "us-east-2:8c2593f4-6c74-4321-8c38-5987c6ffcad9")
         credentialsProvider.getIdentityId().continueWith { (task) -> Any? in
-            if let error = task.error {
-                print("Error getting Cognito Identity ID: \(error)")
-            } else if let identityId = task.result {
-                print("Cognito Identity ID: \(identityId)")
+            DispatchQueue.main.async {
+                if let error = task.error {
+                    print("Error getting Cognito Identity ID: \(error)")
+                } else if let identityId = task.result {
+                    print("Cognito Identity ID: \(identityId)")
+                }
             }
             return nil
         }
@@ -60,14 +63,37 @@ struct ContentView: View {
 
         let dynamoDBObjectMapper = AWSDynamoDBObjectMapper.default()
         dynamoDBObjectMapper.save(dbHike) { error in
-            if let error = error {
-                print("Error saving hike: \(error)")
-            } else {
-                print("Hike saved successfully!")
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Error saving hike: \(error)")
+                } else {
+                    print("Hike saved successfully!")
+                }
             }
         }
     }
 
+    func deleteHikeFromDynamoDB(hike: Hike) {
+        guard let dbHike = HikeRecord() else {
+            print("Failed to create HikeRecord for deletion")
+            return
+        }
+        
+        dbHike.hike_id = hike.id.uuidString
+
+        let dynamoDBObjectMapper = AWSDynamoDBObjectMapper.default()
+        dynamoDBObjectMapper.remove(dbHike) { error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Error deleting hike: \(error)")
+                } else {
+                    print("Hike deleted successfully!")
+                    recorder.allHikes.removeAll { $0.id == hike.id }  // ✅ Remove from local list
+                }
+            }
+        }
+    }
+    
     func fetchHikesFromDynamoDB() {
         guard !userName.isEmpty else {
             print("User name is empty. Cannot fetch hikes.")
@@ -76,21 +102,24 @@ struct ContentView: View {
 
         let scanExpression = AWSDynamoDBScanExpression()
         scanExpression.filterExpression = "user_uuid = :userName"
-        scanExpression.expressionAttributeValues = [":userName": userName]  // ✅ Filter by user name instead of UUID
+        scanExpression.expressionAttributeValues = [":userName": userName]
 
         let dynamoDBObjectMapper = AWSDynamoDBObjectMapper.default()
-        dynamoDBObjectMapper.scan(HikeRecord.self, expression: scanExpression).continueWith { task -> Any? in
-            if let error = task.error {
-                print("Error fetching hikes: \(error)")
-            } else if let result = task.result {
+        
+        DispatchQueue.global(qos: .userInitiated).async {  // ✅ Background thread
+            dynamoDBObjectMapper.scan(HikeRecord.self, expression: scanExpression).continueWith { task -> Any? in
                 DispatchQueue.main.async {
-                    let fetchedHikes = result.items as? [HikeRecord] ?? []
-                    print("Fetched \(fetchedHikes.count) hikes from AWS for user: \(userName)")
-                    
-                    recorder.allHikes = fetchedHikes.map { Hike(from: $0) }
+                    if let error = task.error {
+                        print("Error fetching hikes: \(error)")
+                    } else if let result = task.result {
+                        let fetchedHikes = result.items as? [HikeRecord] ?? []
+                        print("Fetched \(fetchedHikes.count) hikes from AWS for user: \(userName)")
+                        recorder.allHikes = fetchedHikes.map { Hike(from: $0) }
+                    }
+                    isLoading = false  // ✅ Allow name prompt after AWS request completes
                 }
+                return nil
             }
-            return nil
         }
     }
 
@@ -190,7 +219,7 @@ struct ContentView: View {
             }
             .navigationBarHidden(true)
             .sheet(isPresented: $showRoutesList) {
-                RoutesListView(recorder: recorder, userName: userName) { hike in
+                RoutesListView(recorder: recorder, userName: userName, onDeleteHike: deleteHikeFromDynamoDB) { hike in
                     selectedHike = hike
                     showRoutesList = false
                 }
@@ -200,8 +229,11 @@ struct ContentView: View {
             recorder.requestInitialLocation()
             testCognitoAuthentication()
             fetchHikesFromDynamoDB()
-            if userName.isEmpty {
-                showNamePrompt = true
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                if userName.isEmpty {
+                    showNamePrompt = true
+                }
             }
         }
         .sheet(isPresented: $showNamePrompt) {
