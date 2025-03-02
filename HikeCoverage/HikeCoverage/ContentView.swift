@@ -96,7 +96,8 @@ struct ContentView: View {
                         hikes: $recorder.allHikes,
                         currentHike: $recorder.currentHike,
                         selectedHike: $selectedHike,
-                        userLocation: Binding.constant(userLocation)
+                        userLocation: Binding.constant(userLocation),
+                        shouldFollowUser: $recorder.shouldFollowUser
                     )
                     .edgesIgnoringSafeArea(.all)
                 } else {
@@ -168,9 +169,7 @@ struct ContentView: View {
                         .disabled(!recorder.isRecording)
 
                         Button(action: {
-                            if recorder.userLocation != nil {
-                                recorder.shouldRecenterOnLocationUpdate = true
-                            }
+                            recorder.shouldFollowUser = true  // Re-enable following mode
                         }) {
                             Image(systemName: "location.fill")
                                 .padding()

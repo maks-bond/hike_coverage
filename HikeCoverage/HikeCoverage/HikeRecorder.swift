@@ -7,7 +7,8 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var allHikes: [Hike] = []
     @Published var isRecording: Bool = false
     @Published var userLocation: CLLocationCoordinate2D? = nil  // Store current location
-    
+    @Published var shouldFollowUser: Bool = true  // Track if the map should follow user
+
     private var locationManager = CLLocationManager()
     var shouldRecenterOnLocationUpdate = true
     
@@ -45,25 +46,25 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
         currentHike = Hike()
     }
     
-    // Handle location updates
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let newLocation = locations.last else { return }
 
+        if isRecording {
+            DispatchQueue.main.async {
+                self.currentHike.coordinates.append(newLocation.coordinate)
+                self.objectWillChange.send() // Ensure UI updates for new hike points
+            }
+        }
+
+        // ✅ Schedule userLocation update separately without interfering with SwiftUI updates
         DispatchQueue.main.async {
-            // ✅ Only update userLocation ONCE unless manually requested
             if self.userLocation == nil || self.shouldRecenterOnLocationUpdate {
                 self.userLocation = newLocation.coordinate
-                self.shouldRecenterOnLocationUpdate = false  // Reset after re-centering
-            }
-
-            if self.isRecording {
-                self.currentHike.coordinates.append(newLocation.coordinate)  // ✅ Keeps hike tracking
-                self.objectWillChange.send()  // ✅ Ensure UI updates after each new coordinate
-            } else {
-                self.objectWillChange.send()  // ✅ Ensure live location updates in UI
+                self.shouldRecenterOnLocationUpdate = false
             }
         }
     }
+
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Location Manager Error: \(error.localizedDescription)")
