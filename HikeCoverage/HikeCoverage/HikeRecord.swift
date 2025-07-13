@@ -8,6 +8,7 @@ class HikeRecord: AWSDynamoDBObjectModel, AWSDynamoDBModeling {
     @objc var distance: NSNumber?
     @objc var notes: String?
     @objc var location: String?
+    @objc var version: String?  // Add version field
 
     class func dynamoDBTableName() -> String {
         return "hikes"

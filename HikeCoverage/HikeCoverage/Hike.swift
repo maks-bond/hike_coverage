@@ -8,6 +8,20 @@ struct Hike: Codable, Identifiable {
     var coordinates: [CLLocationCoordinate2D] = []
     var notes: String = ""  // 📝 New field to store notes
 
+    // New struct to hold location with timestamp
+    struct LocationPoint: Codable {
+        let coordinate: CLLocationCoordinate2D
+        let timestamp: Date
+        
+        init(coordinate: CLLocationCoordinate2D, timestamp: Date) {
+            self.coordinate = coordinate
+            self.timestamp = timestamp
+        }
+    }
+    
+    var locationPoints: [LocationPoint] = []  // New property for timestamped locations
+    var version: String = "v2"  // Version identifier
+
     // Helper struct for encoding/decoding coordinates.
     struct Coordinate: Codable {
         let latitude: Double
@@ -15,10 +29,50 @@ struct Hike: Codable, Identifiable {
     }
     
     func decodeCoordinates(_ locationString: String) -> [CLLocationCoordinate2D] {
+        // Handle v2 format with timestamps
+        if locationString.contains("|") {
+            return locationString.split(separator: ";").compactMap { point in
+                let parts = point.split(separator: "|")
+                guard parts.count >= 2 else { return nil }
+                let coords = parts[0].split(separator: ",")
+                if coords.count == 2,
+                   let lat = Double(coords[0]),
+                   let lon = Double(coords[1]) {
+                    return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                }
+                return nil
+            }
+        }
+        
+        // Handle v1 format (backward compatibility)
         return locationString.split(separator: ";").compactMap { coord in
             let parts = coord.split(separator: ",")
-            if parts.count == 2, let lat = Double(parts[0]), let lon = Double(parts[1]) {
+            if parts.count == 2,
+               let lat = Double(parts[0]),
+               let lon = Double(parts[1]) {
                 return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            }
+            return nil
+        }
+    }
+    
+    func decodeLocationPoints(_ locationString: String) -> [LocationPoint] {
+        // Only parse timestamps for v2 format
+        guard locationString.contains("|") else { return [] }
+        
+        return locationString.split(separator: ";").compactMap { point in
+            let parts = point.split(separator: "|")
+            guard parts.count == 2,
+                  let timestamp = Double(parts[1]) else { return nil }
+            
+            let coords = parts[0].split(separator: ",")
+            if coords.count == 2,
+               let lat = Double(coords[0]),
+               let lon = Double(coords[1]) {
+                return LocationPoint(
+                    coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon),
+                    timestamp: Date(timeIntervalSince1970: timestamp)
+                )
             }
             return nil
         }
@@ -27,8 +81,15 @@ struct Hike: Codable, Identifiable {
     init(from record: HikeRecord) {
         self.id = UUID(uuidString: record.hike_id ?? "") ?? UUID()
         self.date = Date(timeIntervalSince1970: record.start_time?.doubleValue ?? 0)
-        self.coordinates = decodeCoordinates(record.location ?? "")
         self.notes = record.notes ?? ""
+        self.version = record.version ?? "v1"
+        
+        if let locationString = record.location {
+            self.coordinates = decodeCoordinates(locationString)
+            if version == "v2" {
+                self.locationPoints = decodeLocationPoints(locationString)
+            }
+        }
     }
 
     // Custom encoding.

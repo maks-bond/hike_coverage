@@ -6,19 +6,14 @@ struct MapView: UIViewRepresentable {
     @Binding var currentHike: Hike
     @Binding var selectedHike: Hike?
     @Binding var userLocation: CLLocationCoordinate2D?
-    @Binding var shouldFollowUser: Bool  // New binding to track whether the map should follow
-
+    @Binding var centerOnUser: Bool  // New binding to trigger centering
+    
     private let mapView = MKMapView()
 
     func makeUIView(context: Context) -> MKMapView {
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
         mapView.userTrackingMode = .none
-
-        // ✅ Detect when the user manually moves the map
-        let panGesture = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMapDrag(_:)))
-        mapView.addGestureRecognizer(panGesture)
-
         return mapView
     }
 
@@ -32,15 +27,15 @@ struct MapView: UIViewRepresentable {
     func updateUIView(_ uiView: MKMapView, context: Context) {
         uiView.removeOverlays(uiView.overlays)
 
-        if let location = userLocation, shouldFollowUser {
-            let currentRegion = uiView.region
-            let newRegion = MKCoordinateRegion(center: location, latitudinalMeters: 500, longitudinalMeters: 500)
-
-            // ✅ Only update if the user has NOT moved the map
-            if abs(currentRegion.center.latitude - newRegion.center.latitude) > 0.0005 ||
-               abs(currentRegion.center.longitude - newRegion.center.longitude) > 0.0005 {
-                uiView.setRegion(newRegion, animated: true)
-            }
+        // Center on user if requested
+        if centerOnUser, let location = userLocation {
+            let region = MKCoordinateRegion(
+                center: location,
+                latitudinalMeters: 500,
+                longitudinalMeters: 500
+            )
+            uiView.setRegion(region, animated: true)
+            centerOnUser = false  // Reset the trigger
         }
 
         for hike in hikes {
@@ -70,14 +65,6 @@ struct MapView: UIViewRepresentable {
 
         init(_ parent: MapView) {
             self.parent = parent
-        }
-
-        @objc func handleMapDrag(_ gesture: UIPanGestureRecognizer) {
-            if gesture.state == .began {
-                DispatchQueue.main.async {
-                    self.parent.shouldFollowUser = false  // ✅ Stop auto-following when user moves map
-                }
-            }
         }
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {

@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var userName: String = UserSettings.shared.userName ?? ""
     @State private var showNamePrompt = false
     @State private var isLoading = true  // ✅ Prevents UI freeze
+    @State private var centerOnUser: Bool = true  // Start centered on user
 
     func testCognitoAuthentication() {
         let credentialsProvider = AWSCognitoCredentialsProvider(regionType: .USEast2, identityPoolId: "us-east-2:8c2593f4-6c74-4321-8c38-5987c6ffcad9")
@@ -38,8 +39,16 @@ struct ContentView: View {
         return distance / 1000.0 // Convert to kilometers
     }
 
-    func encodeCoordinates(_ coordinates: [CLLocationCoordinate2D]) -> String {
-        return coordinates.map { "\($0.latitude),\($0.longitude)" }.joined(separator: ";")
+    func encodeCoordinates(_ hike: Hike) -> String {
+        if !hike.locationPoints.isEmpty {
+            // v2 format with timestamps
+            return hike.locationPoints.map { point in
+                "\(point.coordinate.latitude),\(point.coordinate.longitude)|\(point.timestamp.timeIntervalSince1970)"
+            }.joined(separator: ";")
+        } else {
+            // v1 format (backward compatibility)
+            return hike.coordinates.map { "\($0.latitude),\($0.longitude)" }.joined(separator: ";")
+        }
     }
 
     func saveHikeToDynamoDB(hike: Hike) {
@@ -59,7 +68,8 @@ struct ContentView: View {
         dbHike.start_time = NSNumber(value: hike.date.timeIntervalSince1970)
         dbHike.distance = NSNumber(value: calculateDistance(hike.coordinates))
         dbHike.notes = hike.notes
-        dbHike.location = encodeCoordinates(hike.coordinates)
+        dbHike.location = encodeCoordinates(hike)
+        dbHike.version = hike.version
 
         let dynamoDBObjectMapper = AWSDynamoDBObjectMapper.default()
         dynamoDBObjectMapper.save(dbHike) { error in
@@ -133,7 +143,7 @@ struct ContentView: View {
                         currentHike: $recorder.currentHike,
                         selectedHike: $selectedHike,
                         userLocation: Binding.constant(userLocation),
-                        shouldFollowUser: $recorder.shouldFollowUser
+                        centerOnUser: $centerOnUser
                     )
                     .edgesIgnoringSafeArea(.all)
                 } else {
@@ -205,8 +215,7 @@ struct ContentView: View {
                         .disabled(!recorder.isRecording)
 
                         Button(action: {
-                            recorder.shouldRecenterOnLocationUpdate = true
-                            recorder.userLocation = recorder.userLocation
+                            centerOnUser = true  // This will trigger the map to center
                         }) {
                             Image(systemName: "location.fill")
                                 .padding()

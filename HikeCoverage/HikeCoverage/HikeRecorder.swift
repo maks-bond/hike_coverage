@@ -57,6 +57,12 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
 
             if self.isRecording {
                 self.currentHike.coordinates.append(newLocation.coordinate)
+                self.currentHike.locationPoints.append(
+                    Hike.LocationPoint(
+                        coordinate: newLocation.coordinate,
+                        timestamp: newLocation.timestamp
+                    )
+                )
                 self.objectWillChange.send()
             }
         }
