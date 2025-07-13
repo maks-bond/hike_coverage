@@ -13,9 +13,31 @@ struct Hike: Codable, Identifiable {
         let coordinate: CLLocationCoordinate2D
         let timestamp: Date
         
+        // Custom coding keys
+        private enum CodingKeys: String, CodingKey {
+            case latitude, longitude, timestamp
+        }
+        
         init(coordinate: CLLocationCoordinate2D, timestamp: Date) {
             self.coordinate = coordinate
             self.timestamp = timestamp
+        }
+        
+        // Custom encoding
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(coordinate.latitude, forKey: .latitude)
+            try container.encode(coordinate.longitude, forKey: .longitude)
+            try container.encode(timestamp, forKey: .timestamp)
+        }
+        
+        // Custom decoding
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let lat = try container.decode(Double.self, forKey: .latitude)
+            let lon = try container.decode(Double.self, forKey: .longitude)
+            coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            timestamp = try container.decode(Date.self, forKey: .timestamp)
         }
     }
     
