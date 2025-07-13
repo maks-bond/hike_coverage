@@ -106,7 +106,8 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     private func saveHike(_ hike: Hike) {
-        allHikes.append(hike)
+        // Insert new hikes at the beginning to keep the list sorted by date descending.
+        allHikes.insert(hike, at: 0)
         saveHikesToFile()
     }
     
@@ -126,7 +127,8 @@ class HikeRecorder: NSObject, ObservableObject, CLLocationManagerDelegate {
         if let url = getHikesFileURL(),
            let data = try? Data(contentsOf: url),
            let hikes = try? JSONDecoder().decode([Hike].self, from: data) {
-            allHikes = hikes
+            // Sort hikes by date to ensure they are always displayed in descending order.
+            allHikes = hikes.sorted { $0.date > $1.date }
         }
     }
 }

@@ -20,14 +20,17 @@ struct RoutesListView: View {
                 List {
                     ForEach(recorder.allHikes) { hike in
                         VStack(alignment: .leading) {
-                            HStack {
+                            HStack(spacing: 0) {
                                 VStack(alignment: .leading) {
-                                    Text("Hike on \(formattedDate(hike.date))")
-                                    Text("\(hike.coordinates.count) points")
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
+                                    VStack(alignment: .leading) {
+                                        Text("Hike on \(formattedDate(hike.date))")
+                                        Text("\(hike.coordinates.count) points")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                    }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
                                 .onTapGesture { onSelect(hike) }
 
                                 // Delete Button
@@ -37,7 +40,7 @@ struct RoutesListView: View {
                                 }) {
                                     Image(systemName: "trash")
                                         .foregroundColor(.red)
-                                        .padding(10)
+                                        .frame(width: 44, height: 44)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }

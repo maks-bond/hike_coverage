@@ -114,7 +114,8 @@ struct ContentView: View {
                     } else if let result = task.result {
                         let fetchedHikes = result.items as? [HikeRecord] ?? []
                         print("Fetched \(fetchedHikes.count) hikes from AWS for user: \(userName)")
-                        recorder.allHikes = fetchedHikes.map { Hike(from: $0) }
+                        // Sort hikes by date, with the most recent first.
+                        recorder.allHikes = fetchedHikes.map { Hike(from: $0) }.sorted { $0.date > $1.date }
                     }
                     isLoading = false  // ✅ Allow name prompt after AWS request completes
                 }
